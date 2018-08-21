@@ -215,23 +215,45 @@ node * search(string nam, node* current){
 	return current;
 }
 
-///////////////////////////////////////////////////  debug ///////////////////////////////////////
 node * pathReader(string path, node* current){
 	string dir="";
 	node * q = new node;
 	q=current;
 	for(string::iterator it=path.begin();it!=path.end();++it){
+		cout<<"in for loop"<<endl;
 		if(*it!='/' && *it!='\0')dir=dir+*it;
 		else{
+			cout<<"detect yash"<<endl;
 			if(dir=="main")q=root;
 			else{
-				q=search(dir, q);
+				cout<<"yash is not main"<<endl;
+				if(q->firstChild!=NULL){
+					cout<<"firstChild is not NULL"<<endl;
+					node * p = new node;
+					p=q;
+					q=q->firstChild;
+					while(q->sibling!=NULL){
+						if(q->name==dir)break;
+						q=q->sibling;
+					}
+					if(q->sibling==NULL&&q->name!=dir)q=p;
+				}
+				else{
+					cout<<"firstChild is NULL"<<endl;
+					HANDLE  hConsole;
+					hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+					SetConsoleTextAttribute(hConsole, 1);
+					cout<<"\t No such path found Found!"<<endl;
+					return q;
+				}
 			}
 			dir="";
 		}
 	}
+	cout<<dir<<endl;
 	if(q!=current)return q;
 	else{
+		cout<<"address is of current dir"<<endl;
 		HANDLE  hConsole;
 		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		SetConsoleTextAttribute(hConsole, 1);
@@ -239,7 +261,6 @@ node * pathReader(string path, node* current){
 		return q;
 	}
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////
 
 map<string, int> commandID;
 void declareID(){
@@ -314,7 +335,7 @@ int main(){
 						break;
 				case 3: cin>>naam;
 						if(cin.get()=='\n');
-						current = surfto(naam, current);
+						current = pathReader(naam, current);
 						break;
 				case 4: SetConsoleTextAttribute(hConsole, 14);
 						cout<<"\t Hey yash Its nice to meet you!!"<<endl;
