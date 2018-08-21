@@ -89,32 +89,6 @@ string path(node * current){
 	return currentpath;
 }
 
-node * surfto(string naam, node* current){
-	node * q = new node;
-	if(current->firstChild!=NULL){
-		q=current->firstChild;
-		while(q->name!=naam && q->sibling!=NULL)q=q->sibling;
-		if(q->sibling!=NULL)return q;
-		else{
-			if(q->sibling==NULL && q->name==naam)return q;
-			else{
-				HANDLE  hConsole;
-				hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-				SetConsoleTextAttribute(hConsole, 1);
-				cout<<"\t No such file or directory exists!"<<endl;
-				return current;
-			}
-		}
-	}
-	else{
-		HANDLE  hConsole;
-		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-		SetConsoleTextAttribute(hConsole, 1);
-		cout<<"\t No such file or directory exists!"<<endl;
-		return current;
-	}
-}
-
 void freemem(node* dir){
 	stack<node *> stk;
 	stk.push(dir);
@@ -174,21 +148,6 @@ void removedir(string nam, node* current){
 }
 
 //static node * copy = new node;
-//void paste(node* current){
-//	if(current->firstChild!=NULL){
-//		node* q = new node;
-//		q=current->firstChild;
-//		while(q->sibling!=NULL){
-//			q=q->sibling;
-//		}
-//		q->sibling=copy;
-//		copy->parent=current;
-//	}
-//	else{
-//		current->firstChild=copy;
-//		copy->parent=current;
-//	}
-//}
 
 node * search(string nam, node* current){
 	stack<node*> dfs;
@@ -215,17 +174,43 @@ node * search(string nam, node* current){
 	return current;
 }
 
-///////////////////////////////////////////////////  debug ///////////////////////////////////////
 node * pathReader(string path, node* current){
+	if(path==".."){
+		if(current->parent!=NULL)return current->parent;
+		else{
+			HANDLE  hConsole;
+			hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+			SetConsoleTextAttribute(hConsole, 1);
+			cout<<"\t This is main Directory"<<endl;
+			return current;
+		}
+	}
+	if(path=="/")return root;
+	path+='`';
 	string dir="";
 	node * q = new node;
 	q=current;
 	for(string::iterator it=path.begin();it!=path.end();++it){
-		if(*it!='/' && *it!='\0')dir=dir+*it;
+		if(*it!='/' && *it!='`')dir=dir+*it;
 		else{
 			if(dir=="main")q=root;
 			else{
-				q=search(dir, q);
+				if(q->firstChild!=NULL){
+					q=q->firstChild;
+					while(q->sibling!=NULL){
+						if(q->name==dir)break;
+						q=q->sibling;
+					}
+					if(q->sibling==NULL&&q->name!=dir)q=current;
+				}
+				else{
+					HANDLE  hConsole;
+					hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+					SetConsoleTextAttribute(hConsole, 1);
+					cout<<"\t No such path found Found!"<<endl;
+					q=current;
+					return q;
+				}
 			}
 			dir="";
 		}
@@ -239,13 +224,11 @@ node * pathReader(string path, node* current){
 		return q;
 	}
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////
 
 map<string, int> commandID;
 void declareID(){
 	commandID.insert(pair <string, int> ("exit", 0));
 	commandID.insert(pair <string, int> ("ndir", 1));
-	commandID.insert(pair <string, int> ("cd..", 2));
 	commandID.insert(pair <string, int> ("cd", 3));
 	commandID.insert(pair <string, int> ("yash", 4));
 	commandID.insert(pair <string, int> ("lst", 5));
@@ -253,7 +236,6 @@ void declareID(){
 	commandID.insert(pair <string, int> ("pdr", 7));
 	commandID.insert(pair <string, int> ("ddir", 8));
 	commandID.insert(pair <string, int> ("clr", 9));
-	commandID.insert(pair <string, int> ("cd/", 10));
 	commandID.insert(pair <string, int> ("fnd", 11));
 }
 
@@ -262,9 +244,9 @@ void printGuid(){
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 2);
 	cout<<"\t ndir: Create new directory"<<endl;
-	cout<<"\t cd..: Move to parent directory"<<endl;
+	cout<<"\t cd ..: Move to parent directory"<<endl;
 	cout<<"\t cd: Change directory"<<endl;
-	cout<<"\t cd/: Go to main directory directly"<<endl;
+	cout<<"\t cd /: Go to main directory directly"<<endl;
 	cout<<"\t clr: Clear screen"<<endl;
 	cout<<"\t fnd: Find the directory by name"<<endl;
 	cout<<"\t yash: Greets Yash Srivastava (Creator)"<<endl;
@@ -306,18 +288,12 @@ int main(){
 						if(cin.get()=='\n');
 						insert(naam, current);
 						break;
-				case 2: if(current!=root)current=current->parent;
-						else{
-							SetConsoleTextAttribute(hConsole, 1);
-							cout<<"\t This is main Directory"<<endl;	
-						}
-						break;
 				case 3: cin>>naam;
 						if(cin.get()=='\n');
-						current = surfto(naam, current);
+						current = pathReader(naam, current);
 						break;
 				case 4: SetConsoleTextAttribute(hConsole, 14);
-						cout<<"\t Hey yash Its nice to meet you!!"<<endl;
+						cout<<"\t Hey YASH Its nice to meet you!!"<<endl;
 						break;
 				case 5: print(current);
 						break;
@@ -333,8 +309,6 @@ int main(){
 				case 9: system("CLS");
 						SetConsoleTextAttribute(hConsole, 236);
 						cout<<"                             RenOS terminal!!                              "<<endl<<endl;
-						break;
-				case 10: current=root;
 						break;
 				case 11: cin>>naam;
 						if(cin.get()=='\n');
